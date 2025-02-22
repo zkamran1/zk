@@ -302,6 +302,11 @@ app.delete('/delete-memorial/:id', async (req, res) => {
   }
 });
 
+// ✅ Add this at the bottom before `app.listen()`
+app.get("/", (req, res) => {
+  res.send("Welcome to the MemorializeAI Backend API! 🎉 Visit /memorials to get all profiles.");
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
