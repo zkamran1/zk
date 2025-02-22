@@ -19,11 +19,18 @@ const pool = new Pool({
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
 
-const APP_BASE_URL = "http://192.168.56.1";
+// const APP_BASE_URL = "http://192.168.56.1";
+const APP_BASE_URL = process.env.APP_BASE_URL || ""; // Remove hardcoding
 
-const generateQRCodeUrl = (id) => {
-    return `${APP_BASE_URL}/@${id}`;
+
+// const generateQRCodeUrl = (id) => {
+//     return `${APP_BASE_URL}/@${id}`;
+// };
+const generateQRCodeUrl = (id, req) => {
+  const baseUrl = `${req.protocol}://${req.get("host")}`; // Dynamically get the request origin
+  return `${baseUrl}/@${id}`;
 };
+
 
 /** 
  * Create a new memorial entry 
@@ -84,7 +91,8 @@ app.post('/create-memorial', async (req, res) => {
 
 
     const memorialId = result.rows[0].id;
-    const qrData = `http://192.168.56.1:5000/memorial/${memorialId}`;
+    // const qrData = `http://192.168.56.1:5000/memorial/${memorialId}`;
+    const qrData = `https://memorializeai-backend.onrender.com/memorial/${memorialId}`;
     const qrCodeURL = await QRCode.toDataURL(qrData); 
     
 
@@ -199,7 +207,7 @@ app.put('/update-memorial/:id', async (req, res) => {
   }
 
   try {
-    const qrCodeURL = `http://192.168.56.1:5000/memorial/@${id}`;
+    const qrCodeURL = `https://memorializeai-backend.onrender.com//memorial/@${id}`;
 
     // ✅ Fix: Change `dob` to `birth_date`
     const result = await pool.query(
@@ -303,9 +311,26 @@ app.delete('/delete-memorial/:id', async (req, res) => {
 });
 
 // ✅ Add this at the bottom before `app.listen()`
-app.get("/", (req, res) => {
-  res.send("Welcome to the MemorializeAI Backend API! 🎉 Visit /memorials to get all profiles.");
+// app.get("/", (req, res) => {
+//   res.send("Welcome to the MemorializeAI Backend API! 🎉 Visit /memorials to get all profiles.");
+// });
+app.get("/get-openai-key", (req, res) => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  
+  if (!apiKey) {
+    return res.status(500).json({ error: "OpenAI API Key is missing in environment variables!" });
+  }
+  
+  res.json({ api_key: apiKey });
 });
+
+app.get("/generate-qrcode/:id", (req, res) => {
+  const id = req.params.id;
+  const qrCodeUrl = generateQRCodeUrl(id, req);
+  res.json({ qrCodeUrl });
+});
+
+
 
 // Start the server
 app.listen(port, () => {
