@@ -14,7 +14,7 @@ app.use(cors());
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: process.env.DATABASE_URL.includes("render.com") ? { rejectUnauthorized: false } : false,
 });
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
@@ -336,3 +336,4 @@ app.get("/generate-qrcode/:id", (req, res) => {
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
 });
+// Triggering redeployment
