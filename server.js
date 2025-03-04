@@ -207,7 +207,7 @@ app.put('/update-memorial/:id', async (req, res) => {
   }
 
   try {
-    const qrCodeURL = `https://memorializeai-backend.onrender.com//memorial/@${id}`;
+    const qrCodeURL = `https://memorializeai-backend.onrender.com/memorial/@${id}`;
 
     // ✅ Fix: Change `dob` to `birth_date`
     const result = await pool.query(
